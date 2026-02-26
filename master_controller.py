@@ -42,13 +42,12 @@ def set_offboard():
     time.sleep(0.5)
 
 def send_velocity(vx, vy, vz):
-    type_mask = int(0b110111000111)
     vehicle.mav.set_position_target_local_ned_send(
         0,
         vehicle.target_system,
         vehicle.target_component,
-        mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-        type_mask,
+        mavutil.mavlink.MAV_FRAME_BODY_NED,  # changed from LOCAL_NED
+        int(0b110111000111),
         0, 0, 0,
         vx, vy, vz,
         0, 0, 0,

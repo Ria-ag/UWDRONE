@@ -3,24 +3,33 @@ import time
 import numpy as np
 from ultralytics import YOLO
 
-def gstreamer_pipeline(
-    sensor_id=0,
-    capture_width=1280,
-    capture_height=720,
-    framerate=30,
-    flip_method=2,
-):
-    return (
-        "nvarguscamerasrc sensor-id=%d ! "
-        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, "
-        "format=(string)NV12, framerate=(fraction)%d/1 ! "
-        "nvvidconv flip-method=%d ! "
-        "video/x-raw, format=(string)BGRx ! "
-        "videoconvert ! video/x-raw, format=(string)BGR ! "
-        "appsink drop=true max-buffers=1 sync=false"
-        % (sensor_id, capture_width, capture_height, framerate, flip_method)
-    )
+# def gstreamer_pipeline(
+#     sensor_id=0,
+#     capture_width=1280,
+#     capture_height=720,
+#     framerate=30,
+#     flip_method=2,
+# ):
+#     return (
+#         "nvarguscamerasrc sensor-id=%d ! "
+#         "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, "
+#         "format=(string)NV12, framerate=(fraction)%d/1 ! "
+#         "nvvidconv flip-method=%d ! "
+#         "video/x-raw, format=(string)BGRx ! "
+#         "videoconvert ! video/x-raw, format=(string)BGR ! "
+#         "appsink drop=true max-buffers=1 sync=false"
+#         % (sensor_id, capture_width, capture_height, framerate, flip_method)
+#     )
 
+def gstreamer_pipeline(sensor_id=0, capture_width=1280, capture_height=720, framerate=30):
+    return (
+        "nvarguscamerasrc sensor-id=%d ee-mode=1 ee-strength=1.0 tnr-mode=1 tnr-strength=1.0 ! "
+        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! "
+        "nvvidconv ! video/x-raw, format=(string)BGRx ! "
+        "videoconvert ! video/x-raw, format=(string)BGR ! "
+        "appsink drop=True"
+        % (sensor_id, capture_width, capture_height, framerate)
+    )
 
 class cv_yolo:
     def __init__(
