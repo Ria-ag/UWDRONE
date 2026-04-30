@@ -30,7 +30,7 @@ class cv_yolo:
         enable_depth=False,         # start simpler unless stereo is stable
         baseline=0.12,
         focal_length=700.0,
-        stream_ip="192.168.89.254",
+        stream_ip="192.168.89.250",
         stream_port=5000,
         enable_stream=True,
         enable_ocr=True,
@@ -99,8 +99,7 @@ class cv_yolo:
                     "appsrc ! "
                     "video/x-raw, format=BGR, width=%d, height=%d, framerate=%d/1 ! "
                     "videoconvert ! "
-                    "video/x-raw, format=I420 ! "
-                    "nvjpegenc quality=85 ! "
+                    "nvjpegenc quality=90 ! "
                     "rtpjpegpay ! "
                     "udpsink host=%s port=%d sync=false async=false"
                     % (width, height, fps, stream_ip, stream_port)
