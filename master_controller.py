@@ -2,6 +2,7 @@ import time
 import sys
 from pymavlink import mavutil
 from cv_yolo import cv_yolo
+import numpy as np
 
 # CONFIG
 SERIAL_PORT = '/dev/ttyACM0'
@@ -112,22 +113,29 @@ try:
         # AUTO MODE (CV DRIVEN)
         if current_mode == MODE_AUTO:
             cv_cmd = cv.step()
-            if cv_cmd:
+            if cv_cmd and cv_cmd["valid"]:
                 offset_x = cv_cmd["offset_x"]
                 depth = cv_cmd["depth_m"]
-
-                # Distance control (~1m target)
-                if depth:
-                    if depth > 1.2:
-                        target_vx = SAFE_SPEED
-                    elif depth < 0.8:
-                        target_vx = -SAFE_SPEED
-                    else:
-                        target_vx = 0
-                else:
-                    target_vx = 0
-
-                target_vy = -SAFE_SPEED * offset_x
+                # --- FORWARD CONTROL ---
+                TARGET_DIST = 1.0
+                depth_error = depth - TARGET_DIST
+                # proportional forward velocity
+                target_vx = np.clip(depth_error * 0.25, -0.3, 0.3)
+                # --- LATERAL CONTROL ---
+                target_vy = np.clip(-offset_x * 0.35, -0.25, 0.25)
+                # altitude fixed for now
+                target_vz = 0
+                print(
+                    f"[AUTO] "
+                    f"depth={depth:.2f} "
+                    f"offset={offset_x:.2f} "
+                    f"vx={target_vx:.2f} "
+                    f"vy={target_vy:.2f}"
+                )
+            else:
+                # target lost -> hover
+                target_vx = 0
+                target_vy = 0
                 target_vz = 0
 
         # EXECUTION LOOP

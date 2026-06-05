@@ -90,59 +90,63 @@ class cv_yolo:
 
         t0 = time.time()
 
+        h, w = frame.shape[:2]
+
+        best_target = None
+        best_area = 0
+
         # ===== YOLO =====
         results = self.model(frame, verbose=False)
 
         for r in results:
             for box in r.boxes:
+
                 conf = float(box.conf[0])
-                if conf < 0.4:
+                if conf < 0.45:
                     continue
 
                 x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+
                 cls = int(box.cls[0])
                 label = self.class_names[cls]
 
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(frame, f"{label} {conf:.2f}",
+                area = (x2 - x1) * (y2 - y1)
+
+                cx = (x1 + x2) // 2
+                cy = (y1 + y2) // 2
+
+                # normalized horizontal offset
+                offset_x = (cx - (w / 2)) / (w / 2)
+
+                # crude pseudo-depth estimate
+                # larger object = closer
+                depth_est = 15000 / max(area, 1)
+
+                # pick largest target
+                if area > best_area:
+                    best_area = area
+
+                    best_target = {
+                        "label": label,
+                        "confidence": conf,
+                        "offset_x": offset_x,
+                        "depth_m": depth_est,
+                        "cx": cx,
+                        "cy": cy,
+                        "area": area
+                    }
+
+                # VISUALIZATION
+                cv2.rectangle(frame, (x1, y1), (x2, y2),
+                            (0,255,0), 2)
+
+                cv2.putText(frame,
+                            f"{label} {conf:.2f}",
                             (x1, y1 - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            (0, 255, 0), 2)
-
-        # ===== ARUCO =====
-        corners, ids, _ = self.aruco_detector.detectMarkers(frame)
-
-        if ids is not None:
-            for i, corner in enumerate(corners):
-                pts = corner[0].astype(int)
-                marker_id = int(ids[i][0])
-
-                cv2.polylines(frame, [pts], True, (255, 0, 0), 2)
-
-                cx = int(np.mean(pts[:, 0]))
-                cy = int(np.mean(pts[:, 1]))
-
-                cv2.putText(frame, f"ID {marker_id}",
-                            (cx, cy),
                             cv2.FONT_HERSHEY_SIMPLEX,
-                            0.6,
-                            (255, 0, 0), 2)
-
-        # ===== OCR =====
-        if self.enable_ocr and self.frame_count % 10 == 0:
-            try:
-                self.ocr_cache = self._run_ocr(frame)
-            except:
-                self.ocr_cache = []
-
-        y = 30
-        for line in self.ocr_cache:
-            cv2.putText(frame, f"OCR: {line[:40]}",
-                        (20, y),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6,
-                        (0, 200, 255), 2)
-            y += 30
+                            0.5,
+                            (0,255,0),
+                            2)
 
         # ===== STREAM =====
         if self.out:
@@ -155,7 +159,19 @@ class cv_yolo:
 
         print(f"[CV] fps={fps:.1f} latency={latency:.1f}ms")
 
-        return frame
+        # ===== OUTPUT =====
+        if best_target:
+            return {
+                "valid": True,
+                "offset_x": best_target["offset_x"],
+                "depth_m": best_target["depth_m"],
+                "label": best_target["label"],
+                "confidence": best_target["confidence"]
+            }
+
+        return {
+            "valid": False
+        }
 
     def release(self):
         self.capL.release()
