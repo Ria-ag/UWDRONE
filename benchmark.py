@@ -6,6 +6,7 @@ import easyocr
 import tensorrt
 import torch
 from rapidocr import EngineType, OCRVersion, RapidOCR
+from tqdm import tqdm
 
 IMAGE = sys.argv[1] if len(sys.argv) > 1 else "sample.png"
 RUNS = 10
@@ -39,7 +40,7 @@ def benchmark(name, load_fn, run_fn):
     warmup_time = time.perf_counter() - t
 
     times = []
-    for _ in range(RUNS):
+    for _ in tqdm(range(RUNS), desc=name, unit="run"):
         t = time.perf_counter()
         run_fn(model)
         times.append(time.perf_counter() - t)
