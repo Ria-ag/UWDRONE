@@ -11,7 +11,7 @@ IMAGE = sys.argv[1] if len(sys.argv) > 1 else "sample.png"
 RUNS = 10
 
 # Directory containing your local model files
-MODEL_DIR = Path("/home/uwdrones/")
+MODEL_DIR = Path("/home/uwdrones/ocrmodels/")
 
 DET_MODEL = MODEL_DIR / "det.onnx"
 REC_MODEL = MODEL_DIR / "rec.onnx"
