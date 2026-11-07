@@ -8,7 +8,8 @@ SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200
 
 # UPDATE THIS IP to match your Ground Station Laptop!
-GCS_IP = '10.151.210.66' 
+# GCS_IP = '10.151.210.66' 
+GCS_IP = "10.0.0.255"
 GCS_PORT = 14550
 CMD_PORT = 14551
 

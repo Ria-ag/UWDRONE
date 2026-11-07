@@ -2,7 +2,7 @@ from pymavlink import mavutil
 import sys
 
 # CONFIGURATION
-# Set this to the JETSON'S IP address (e.g. 10.151.210.21)
+# Set to the JETSON'S IP address (e.g. 10.151.210.21)
 JETSON_IP = input("Enter Jetson IP: ") 
 CMD_PORT = 14551
 
@@ -27,6 +27,9 @@ print(" D - Fly East")
 print(" A - Fly West")
 print(" SPACE - Stop / Hover")
 print(" Q - Quit")
+print(" T - AUTO Mode")
+print(" M - MANUAL Mode")
+print(" R - RC Mode")
 
 while True:
     key = input("Command > ").upper()
@@ -48,3 +51,12 @@ while True:
         print(">> Sending STOP")
     elif key == 'Q':
         break
+    elif key == 'T':
+        send_action(100)
+        print(">> AUTO Mode")
+    elif key == 'M':
+        send_action(101)
+        print(">> MANUAL Mode")
+    elif key == 'R':
+        send_action(102)
+        print(">> RC Mode")
