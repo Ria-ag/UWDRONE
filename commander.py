@@ -2,7 +2,7 @@ from pymavlink import mavutil
 import sys
 
 # CONFIGURATION
-# Set this to the JETSON'S IP address (e.g. 10.151.210.21)
+# Set this to the JETSON'S IP address (e.g. Microtik Wifi: 192.168.89.252 Ethernet: 192.168.50.2)
 JETSON_IP = input("Enter Jetson IP: ") 
 CMD_PORT = 14551
 
