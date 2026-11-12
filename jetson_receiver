@@ -1,0 +1,48 @@
+
+import socket
+import json
+
+PORT = 5005
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(("0.0.0.0", PORT))
+sock.settimeout(10)
+
+print(f"Listening on UDP port {PORT}...")
+
+try:
+    while True:
+        try:
+            data, address = sock.recvfrom(4096)
+
+            message = json.loads(data.decode("utf-8"))
+
+            print(f"Received from {address}:")
+            print(f"  Message: {message['message']}")
+            print(f"  Sequence: {message['sequence']}")
+            print(f"  Target: {message['target']}")
+
+            # Verify the message was parsed correctly
+            assert message["message"] == "Hello from Jetson!"
+            assert isinstance(message["sequence"], int)
+
+            print("Message parsed successfully!\n")
+
+            # Send acknowledgment back to Jetson
+            ack = json.dumps({
+                "status": "received",
+                "sequence": message["sequence"]
+            })
+            sock.sendto(ack.encode("utf-8"), address)
+
+        except socket.timeout:
+            print("Waiting for messages...")
+
+        except (ValueError, KeyError, AssertionError) as e:
+            print(f"Invalid message: {e}")
+
+except KeyboardInterrupt:
+    print("Receiver stopped.")
+
+finally:
+    sock.close()
